@@ -1,7 +1,8 @@
 <?php
-include 'includes/header.php';
 include 'functions.php';
 include 'dbaccess.php';
+include 'config.php';
+
 
 if (isset($_GET['error']))
 {
@@ -17,7 +18,7 @@ if (isset($_GET['succes']))
 {
     $succes = match ($_GET['succes']) {
         'deco' => "Vous êtes déconnecté, à bientôt",
-        'connect' => "Bonjour " . $_SESSION['username'] . ". Vous êtes bin connecté en tant que " . $_SESSION['status'] . ", Heureux de vous revoir parmis nous",
+        'connect' => "Bonjour, heureux de vous revoir parmis nous",
         'userCreated' => "Bienvenue parmis nous " . $_SESSION['username'] . ". N'hésitez pas à contacter un admin en cas de problème.",
         'editBook' => "Livre correctement mis à jour.",
         'addBook' => "Livre correctement ajouté.",
@@ -26,15 +27,16 @@ if (isset($_GET['succes']))
         'loanBook' => "Livre loué. Bonne lecture",
         'resetPw' => "Vérifiez vos emails afin de réintialiser votre mot de passe",
         'pwUpdated' => "Votre mot de passe à été mis à jour...",
+        'restitute' => "Le livre � bien �t� restitu�",
     };
 }
-
+//echo "before getbook";
 //récupere les livres
 $query = "SELECT * FROM books";
 $getBooks = dbAccess($query);
 $books = $getBooks['data'];
 $message = $getBooks['message'];
-
+//echo "after getbook";
 //recupére auteurs
 $query = "SELECT * FROM authors" ;
 $getAuthorsNames = dbAccess($query);
@@ -61,45 +63,7 @@ $getRatings = dbAccess($query);
 $ratings = $getRatings['data'];
 $message = $getRatings['message'];
 
-//recuperer id deletebook
-if (!empty($_POST['refDel']))
-{
-    $refDel = htmlspecialchars($_POST['refDel']);
-    if(deleteBook($refDel))
-    {
-        header("location: index.php?succes=deleteBook");
-    }
-    else
-    {
-        header("location: index.php?error=db");
-    }
-}
 
-/**
- * @param $refDel
- * @return bool|void
- */
-function deleteBook($refDel)
-{
-    // Create connection
-    $mysqli = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
-    // Check connection
-    if ($mysqli->connect_error) {
-        die("Connection failed: " . $mysqli->connect_error);
-    }
-
-    $query = "DELETE FROM books WHERE ref =$refDel";
-
-    if ($mysqli->query($query)) {
-        $mysqli->close();
-
-        return true;
-
-    } else {
-
-        return $mysqli->error;
-    }
-}
 
 //insertRatings(24, 17);
 /**
@@ -195,7 +159,7 @@ function changeRate($book_id, $id, $rating_change)
 }
 if (isset($_POST['btn-loan'])){
     $loandBook = $_POST['book_id'];
-    $id = $_SESSION['id'];
+    $id = $_POST['id'];
     $returnDate = date('Y-m-d', strtotime('+7days'));
     // Ajouter une ligne dans la table ratings
     insertRatings($id, $loandBook);
@@ -203,18 +167,61 @@ if (isset($_POST['btn-loan'])){
 }
 if (isset($_POST['btn-rate'])){
     $book_id = $_POST['book_id'];
-    $id = $_SESSION['id'];
+    $id = $_POST['id'];
     $rating = $_POST['rating'];
 
     changeRate($book_id, $id, $rating);
 }
 if (isset($_POST['btn-change-rate'])){
     $book_id = $_POST['book_id'];
-    $id = $_SESSION['id'];
+    $id = $_POST['id'];
     $rating_change = $_POST['rating-change'];
 
     changeRate($book_id, $id, $rating_change);
 }
+
+//recuperer id deletebook
+if (!empty($_POST['refDel']))
+{
+    $refDel = htmlspecialchars($_POST['refDel']);
+    if(deleteBook($refDel))
+    {
+        header("location: index.php?succes=deleteBook");
+    }
+    else
+    {
+        header("location: index.php?error=db");
+    }
+}
+
+
+/**
+ * @param $refDel
+ * @return bool|void
+ */
+function deleteBook($refDel)
+{
+    // Create connection
+    $mysqli = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
+    // Check connection
+    if ($mysqli->connect_error) {
+        die("Connection failed: " . $mysqli->connect_error);
+    }
+
+    $query = "DELETE FROM books WHERE ref = $refDel";
+
+    if ($mysqli->query($query)) {
+        $mysqli->close();
+
+        return true;
+
+    } else {
+
+        return $mysqli->error;
+    }
+}
+
+include 'includes/header.php';
 
 ?>
 
@@ -309,16 +316,19 @@ if (isset($_POST['btn-change-rate'])){
                         ?>
                     </td>
                     <td>
-                        <?php if ($book['cover_url'] != null){ ?>
+                    <?php if ($book['cover_url'] != null){ ?>
+                        
                         <div class="cover">
                             <img class="cover-img" alt="<?=$book['title']?>" src="img/covers/<?=$book['cover_url']?>">
                         </div>
-                        <?php } ?>
+                    
+                    <?php } ?>
                     </td>
                 <?php if ($_SESSION['status'] == "unknown") { ?>
+	
                 <?php } else { ?>
                     <td>
-                    <?php if($_SESSION['status'] == 'admin') { ?>
+                        <?php if($_SESSION['status'] == 'admin') { ?>
                         <!-- Delete trigger modal -->
                         <button type="button" class="btn btn-primary open-AddBookDialog" data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-id="<?= $book['ref'] ?>">Delete</button>
                         <!-- Modal -->
@@ -330,7 +340,7 @@ if (isset($_POST['btn-change-rate'])){
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        Cette action est irréversible
+                                        Are you sure?
                                     </div>
                                     <div class="modal-footer">
                                         <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
@@ -341,9 +351,9 @@ if (isset($_POST['btn-change-rate'])){
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>                        
                         <a class="btn btn-primary" href="edit.php?id=<?= $book['ref'] ?>&authId=<?= $authorsRealIds[$book['author_id']]['id'] ?>" >Edit</a>
-                    <?php } else if($_SESSION['status'] == 'membre') { ?>
+                        <?php } else if($_SESSION['status'] == 'membre') { ?>
                         <?php
                         $loaned = false;
                         $rateable = false;
@@ -376,8 +386,9 @@ if (isset($_POST['btn-change-rate'])){
                             }
                         }
                         if ($available) { ?>
-                            <form method="post" class="loan-rate-form" action="<?=$_SERVER['PHP_SELF']?>">
+                            <form method="post" class="loan-rate-form" action="index.php">
                                 <input type="hidden" name="book_id" value="<?=$book['ref']?>">
+                                <input type="hidden" name="id" value="<?=$_SESSION['id']?>">
                                 <button name="btn-loan" type=submit class="btn btn-primary">Loan</button>
                             </form>
                         <?php } if ($loaned) { ?>
@@ -392,8 +403,9 @@ if (isset($_POST['btn-change-rate'])){
                                 }
                             }
                             if ($state == 'rate'){ ?>
-                                <form class="loan-rate-form" method="post" action="<?=$_SERVER['PHP_SELF']?>">
+                                <form class="loan-rate-form" method="post" action="index.php">
                                     <input type="hidden" name="book_id" value="<?=$book['ref']?>">
+                                    <input type="hidden" name="id" value="<?=$_SESSION['id']?>">
                                     <select name ="rating" class="form-select form-select loan-rate-form" aria-label="form-select" required onchange="updateSelect(this.value);">
                                         <option selected>rate book</option>
                                         <option value="1">1</option>
@@ -411,8 +423,9 @@ if (isset($_POST['btn-change-rate'])){
                                 </form>
                             <?php }
                             else if ($state == 'changeRate') { ?>
-                                <form class="loan-rate-form" method="post" action="<?=$_SERVER['PHP_SELF']?>">
+                                <form class="loan-rate-form" method="post" action="index.php">
                                     <input type="hidden" name="book_id" value="<?=$book['ref']?>">
+                                    <input type="hidden" name="id" value="<?=$_SESSION['id']?>">
                                     <select name ="rating-change" class="loan-rate-form form-select form-select" aria-label="form-select" required onchange="updateSelect(this.value);">
                                         <option selected>Change rate</option>
                                         <option value="1">1</option>
@@ -429,8 +442,8 @@ if (isset($_POST['btn-change-rate'])){
                                     <button name="btn-change-rate" type=submit class="btn btn-primary loan-rate-form">rate</button>
                                 </form>
                             <?php }
+                            }
                         }
-                    }
                 } ?>
                 </td>
                 <?php } ?>

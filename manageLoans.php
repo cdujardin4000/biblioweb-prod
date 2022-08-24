@@ -1,6 +1,6 @@
 <?php
-include 'includes/header.php';
-include 'dbaccess.php';
+
+include 'config.php';
 
 $loansFrom = [];
 $date= date('Y-m-d');
@@ -35,20 +35,27 @@ if(isset($_GET['login'])){
 
 if (isset($_POST['btn-restitution'])){
     $loan = $_POST['id'];
+
     $returnDate = date('Y-m-d', strtotime('-1days'));
-    $query = "UPDATE loans SET return_date=$returnDate WHERE id='$loan'";
-    $mysqli = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
-    if ($result = $mysqli->query($query)){
+    $query = "UPDATE loans SET return_date='$returnDate' WHERE id='$loan'";
+    $mysqli = mysqli_connect(HOSTNAME, USERNAME, PASSWORD, DATABASE);
+
+    if (mysqli_query($mysqli, $query)){
+var_dump($mysqli);
         header("location: manageLoans.php?login=$login");
     }
 
 }
+
+include 'includes/header.php';
 ?>
+
+
 <div class="container">
     <?php if (!isset($_GET['login'])){ ?>
     <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" action="<?php $_SERVER['PHP_SELF'] ?>" method="get">
         <label class="form-label">Entrez le login du membre concerné</label>
-        <input type="text" class="form-control form-control-dark" name="login">
+        <input type="text" class="form-control form-control-dark" name="login" required>
         <button type="submit" class="btn btn-primary change-logo" name="btn-show-loans">Afficher les emprunts</button>
     </form>
     <?php } ?>
@@ -74,6 +81,7 @@ if (isset($_POST['btn-restitution'])){
                     <td>
                         <form method="post" action="<?php $_SERVER['PHP_SELF'] ?>">
                             <input type="hidden" name="id" value="<?=$loan['id']?>">
+                            
                             <button type="submit" class="btn btn-primary change-logo" name="btn-restitution">Restituer</button>
                         </form>
                     </td>

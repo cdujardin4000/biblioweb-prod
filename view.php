@@ -52,35 +52,49 @@ $message = $getFromAuth['message'];
             <p class="error"><?= $error ?></p>
         </div>
     <?php } ?>
-    <!--On affiche pas le bouton si on est pas connecté || si on est ni admin ni membre-->
-    <?php if(!isset($_SESSION['status']) || ($_SESSION['status'] !== 'membre' && $_SESSION['status'] !== 'admin')) { ?>
+    <div class="flex-cards">
+
+    <div class="card" style="width: 50%;">
+	<div class="cover">
+  		<img class="card-img-top" alt="<?=$book['title']?>" src="img/covers/<?=$book['cover_url']?>">
+        </div>
+  	<div class="card-body">
+    	    <h1 class="book-title"><?= $book['title']?></h1>
+    	
+        </div>
+        <ul class="list-group list-group-flush">
+	<?php foreach($book as $key => $value) {
+            if ($value != 'picture') { ?>
+	        <li class="list-group-item"><?= $key ?> : <?= $value ?></li>
+        <?php }	 } ?>
+        </ul>
+        <div class="card-body">
+        <!--On affiche pas le bouton si on est pas connecté || si on est ni admin ni membre-->
+        <?php if(!isset($_SESSION['status']) || $_SESSION['status'] !== 'membre' && $_SESSION['status'] !== 'admin') { ?>
         <!--//Sinon on l'affiche-->
-    <?php }  else { ?>
-        <a class="btn btn-primary" href="edit.php?id=<?= $id ?>&authId=<?= $authId ?>" >Edit</a>
-    <?php } ?>
-    <h1 class="book-title"><?= $book['title']?></h1>
-    <div class="container">
-        <?php foreach($book as $key => $value) {
-            if($key == 'cover_url') { ?>
-                <h3 class='list-text'>Cover:</h3>
-                <div class="cover">
-                    <img class="cover-img" alt="<?=$book['title']?>" src="img/covers/<?=$book['cover_url']?>">
-                </div>
-            <?php } else { ?>
-                <h3 class='list-text'><?=$key?>:</h3>
-                <p class='list-text'><?=$value?></p>
-        <?php } } ?>
+        <?php }  else { ?>
+            <a class="card-link" href="edit.php?id=<?= $id ?>&authId=<?= $authId ?>" >Edit</a>
+        <?php } ?>
+        </div>
     </div>
-    <h2 class="book-title">sur l'auteur: </h2>
-    <p><?= $author['firstname'] . " " . strtoupper($author['lastname']) . " - " . $author['nationality']?></p>
-    <h2 class="book-title">Du même auteur:</h2>
-    <ul>
+    <div class="card" style="width: 50%;">
+        <h2 class="book-title">sur l'auteur:</h2>
+        <p><?= $author['firstname'] . " " . strtoupper($author['lastname']) . " - " . $author['nationality']?></p>
+        <h2 class="book-title">Du même auteur:</h2>
+        <ul>
         <?php foreach($FromAuthor as $bookFrom) {
             if ($bookFrom['ref'] == $id)
                 continue; ?>
             <li><p class='list-text'><a href="view.php?id=<?= $bookFrom['ref'] ?>&authId=<?= $authId ?>"><?= $bookFrom['title'] ?></a></p></li>
         <?php } ?>
-    </ul>
+        </ul>
+    </div>
+
+
+
+
+
+    </div>
 </div>
 <?php
 include 'includes/footer.php';

@@ -1,6 +1,7 @@
 <?php
-include 'includes/header.php';
-include 'dbAccess.php';
+
+include 'dbaccess.php';
+
 include 'functions.php';
 /**
  * @param $title
@@ -36,20 +37,25 @@ function editBook($title, $author_id, $description, $cover_url, $ref)
     }
 }
 
-if (isset($_GET['id']) && !empty($_GET['id']))
+if (isset($_GET['id']))
 {
-    $id = $_GET['id'];
-    $query = "SELECT * FROM `books` WHERE `ref` = $id";
+    $id = htmlspecialchars($_GET['id']);
+    $query = "SELECT * FROM books WHERE ref = $id";
+
+
     $getBook = dbAccess($query);
+
     $book = $getBook['data'][0];
 }
+
+
 //recupére auteurs
 $query = "SELECT * FROM authors" ;
 $getAuthors = dbAccess($query);
 $authors = $getAuthors['data'];
 //recupére id
 $authorsRealIds = getAuthorIds($authors);
-//var_dump($authorsRealIds);die;
+
 if (!empty($_POST['ref']) && !empty($_POST['title']) && !empty($_POST['author_id']) && !empty($_POST['description']) && !empty($_POST['cover_url']))
 {
     // Nettoyage des données externes
@@ -69,6 +75,9 @@ if (!empty($_POST['ref']) && !empty($_POST['title']) && !empty($_POST['author_id
         header("location: index.php?error=db");
     }
 }
+
+include 'includes/header.php';
+
 ?>
 <div class="container">
     <?php if (isset($_GET['error'])){ ?>

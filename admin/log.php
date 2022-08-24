@@ -1,37 +1,142 @@
 <?php
-
-
 include '../includes/header.php';
 include '../functions.php';
 include '../config.php';
 
-$message="";
+$success = "";
+$error = "";
 $connected = false;
 
-
-function checkUser($email)
+if (isset($_GET['error']))
 {
-    // Connexion au serveur MySQL et sélection de la base de données
+    $error = match ($_GET['error']) {
+        'pass' => "Les Mots de passe ne correspondent pas. Veuillez recommencer.",
+        'mail' => "Les adresses mail ne correspondent pas. Veuillez recommencer.",
+        'db' => "Problème avec la base de donnée, veuillez contacter votre administrateur réseau...",
+        'login' => "Il y à une erreur dans votre username ou dans votre password",
+	'notmail' => "Veuillez entrer un email valide",
+    };
+}
+
+if (isset($_GET['succes']))
+{
+    $succes = match ($_GET['succes']) {
+        'deco' => "Vous êtes déconnecté, à bientôt",
+        'connect' => "Bonjour " . $_SESSION['username'] . ". Vous êtes bin connecté en tant que " . $_SESSION['status'] . ", Heureux de vous revoir parmis nous",
+        'userCreated' => "Bienvenue parmis nous " . $_SESSION['username'] . ". N'hésitez pas à contacter un admin en cas de problème.",
+        'editBook' => "Livre correctement mis à jour.",
+        'addBook' => "Livre correctement ajouté.",
+        'deleteBook' => "Livre correctement supprimé.",
+        'addAuthor' => "Auteur correctement ajouté.",
+        'loanBook' => "Livre loué. Bonne lecture",
+        'resetPw' => "Vérifiez vos emails afin de réintialiser votre mot de passe",
+        'pwUpdated' => "Votre mot de passe à été mis à jour...",
+    };
+}
+
+/**
+ * @param $username
+ * @param $password
+ * @return array|false|string[]|void
+ */
+function pwVerif($username, $password)
+{
+    // Connexion au serveur MySQL et s�lection de la base de donn�es
     if ($mysqli = mysqli_connect(HOSTNAME, USERNAME, PASSWORD, DATABASE)) {
 
-        // Nettoyage des données externes
-        $email = mysqli_real_escape_string($mysqli, $email);
+        // Nettoyage des donn�es externes
+        $username = mysqli_real_escape_string($mysqli, $username);
 
-        // Exécution de la requête SQL
-        $result = mysqli_query($mysqli, "SELECT * FROM users WHERE email='$email'");
+        // Ex�cution de la requ�te SQL
+        $result = mysqli_query($mysqli, "SELECT * FROM users WHERE login='$username'");
         if ($result) {
-            // Extraction des données
+            // Extraction des donn�es
             $user = mysqli_fetch_assoc($result);
-            //var_dump($user);
-            mysqli_free_result($result); // Libérer la mémoire
-            return $user;
+            mysqli_free_result($result); // Lib�rer la m�moire
 
+            if ($user && password_verify($password, $user['password'])) {
+
+                mysqli_close($mysqli); // Fermer la connexion au serveur
+                return $user;
+            }
         }
         mysqli_close($mysqli); // Fermer la connexion au serveur
 
         return false;
     }
 }
+
+/**
+ * @param $username
+ * @param $password
+ * @param $mail
+ */
+function addUser($username, $password, $mail)
+{
+// Create connection
+    $mysqli = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
+// Check connection
+    if ($mysqli->connect_error) {
+        die("Connection failed: " . $mysqli->connect_error);
+    }
+    // Nettoyage des données externes
+    $username = mysqli_real_escape_string($mysqli, $username);
+    $mail = mysqli_real_escape_string($mysqli, $mail);
+    $password = password_hash($password, PASSWORD_BCRYPT);
+
+
+    $query = "INSERT INTO users (login, password, email, statut) VALUES ('$username', '$password', '$mail', 'membre')";
+
+    if ($mysqli->query($query) === TRUE) {
+
+        $mysqli->close();
+        $_SESSION['username'] = $username;
+        $_SESSION['status'] = 'novice';
+        header("location: ../index.php?succes=userCreated");
+
+    } else {
+
+        header("location: signUp.php?path=admin&error=db");
+    }
+}
+
+
+/**
+ * @param $query
+ * 
+ */
+function checkUser($email)
+{
+
+    try {
+
+        $mysqli = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
+        // Nettoyage des donnÃ©es externes
+        $email = mysqli_real_escape_string($mysqli, $email);
+        //prÃ©parer une requÃ¨te
+        $result = mysqli_query($mysqli, "SELECT * FROM users WHERE email='$email'");
+        if($result){
+            $user = mysqli_fetch_assoc($result);
+            //var_dump($user);
+            //libÃ©rer la mÃ©moire
+            mysqli_free_result($result);
+            //fermer la connection
+            mysqli_close($mysqli);
+        }
+
+        return $user;
+
+    }
+
+    catch (Throwable $e) {
+
+         echo "Captured Throwable for connection : " . $e->getMessage() . PHP_EOL;
+    }
+}
+
+
+
+
 if(isset($_GET['action']) && $_GET['action'] == 'logout')
 {
     /**
@@ -42,20 +147,8 @@ if(isset($_GET['action']) && $_GET['action'] == 'logout')
     header("location: ../index.php?succes=deco");
 
 }
-if (isset($_GET['error']) &&  $_GET['error'] == 'pass') {
-    $error = "Les Mots de passe ne correspondent pas. Veuillez recommencer.";
-} else if (isset($_GET['error']) &&  $_GET['error'] == 'mail'){
-    $error = "Les adresses mail ne correspondent pas. Veuillez recommencer.";
-} else if (isset($_GET['error']) &&  $_GET['error'] == 'db') {
-    $error = "Nous rencontrons des problèmes actuellement. Si cela se prolonge, veuillez contacter l'administration";
-} else if (isset($_GET['error']) &&  $_GET['error'] == 'login'){
-    $error = "Il y à une erreur dans votre username ou dans votre password";
-} else if (isset($_GET['error']) &&  $_GET['error'] == 'notmail') {
-    $error = "Veuillez entrer un email valide";
-}
 
-if (isset($_POST['username'], $_POST['password1'], $_POST['password2'], $_POST['mail1'], $_POST['mail2']) && !empty($_POST['username']) && !empty($_POST['password1']) && !empty($_POST['password2'])
-&& !empty($_POST['mail1'])  && !empty($_POST['mail2'])){
+if (isset($_POST['username'], $_POST['password1'], $_POST['password2'], $_POST['mail1'], $_POST['mail2'])){
 
     $username = $_POST['username'];
     $password1 = $_POST['password1'];
@@ -63,15 +156,15 @@ if (isset($_POST['username'], $_POST['password1'], $_POST['password2'], $_POST['
     $mail1 = $_POST['mail1'];
     $mail2 = $_POST['mail2'];
     if ($password1 != $password2){
-        header("location: ".$_SERVER['PHP_SELF']."?action=signUp&path=admin&error=pass");
+        header("location: log.php?action=signUp&path=admin&error=pass");
     } else if ($mail1 != $mail2){
-        header("location: ".$_SERVER['PHP_SELF']."?action=signUp&path=admin&error=mail");
+        header("location: log.php?action=signUp&path=admin&error=mail");
     } else if (!filter_var($mail1, FILTER_VALIDATE_EMAIL)){
-        header("location: ".$_SERVER['PHP_SELF']."?action=signUp&path=admin&error=notmail");
+        header("location: log.php?action=signUp&path=admin&error=notmail");
     }
     addUser($username, $password2,  $mail2);
 }
-if(isset($_GET['action']) && $_GET['action'] == 'check')
+if(isset($_GET['action']) && $_GET['action'] === 'check')
 {
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -84,7 +177,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'check')
         $_SESSION['statusChanged'] = 0;
         header("location: ../index.php?succes=connect");
     } else {
-        header("location: ".$_SERVER['PHP_SELF']."?error=true&path=admin&action=login");
+        header("location: log.php?error=login&path=admin&action=login");
     }
 }
 if(isset($_GET['action']) && $_GET['action'] == 'resetPw') {
@@ -133,19 +226,24 @@ if(isset($_GET['action']) && $_GET['action'] == 'pwReset') {
 
         } else {
 
-            header("location: signUp.php?path=admin&error=db");
+            header("location: log.php?path=admin&action=pwReset&error=db");
         }
     }
 }
 
 ?>
 <div class="container">
-<?php if (isset($_GET['error']) && $_GET['error'] == 'true') { ?>
+    <?php if (isset($_GET['succes'])) { ?>
+    <!-- On affiche les succes -->
+    <div class="alert alert-success" role="alert">
+        <p class="succes"><?= $succes ?></p>
+    </div>
+    <?php } else if (isset($_GET['error'])) { ?>
     <!-- On affiche les erreurs -->
     <div class="alert alert-danger" role="alert">
         <p class="error"><?= $error ?></p>
     </div>
-<?php } ?>
+    <?php } ?>
 
 <?php if (isset($_GET['action']) && $_GET['action'] == 'login') { ?>
     <form method="post" action="<?=$_SERVER['PHP_SELF']?>?action=check" class="row g-3">

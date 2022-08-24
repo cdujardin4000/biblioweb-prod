@@ -1,8 +1,7 @@
 <?php
-
+include('config.php');
 use JetBrains\PhpStorm\ArrayShape;
 
-include('config.php');
 
 /**
  * @param $query
@@ -13,50 +12,39 @@ function dbAccess($query)
 {
     $data = [];
     $message = "";
-
     // se connecter au serveur Mysql
-    $mysqli = @mysqli_connect(HOSTNAME, USERNAME, PASSWORD); //@pour ne rien afficher si erreur
 
-    // selectionner une base de donnÃ©e
-    if ($mysqli)
-    {
+try {
+    $mysqli = mysqli_connect(HOSTNAME, USERNAME, PASSWORD, DATABASE);
+    $query = mysqli_real_escape_string($mysqli, $query);
+    //préparer une requète
+    $result = mysqli_query($mysqli, $query);
+    if($result){
+       while (($line = mysqli_fetch_assoc($result)) != null){
+           $data[] = $line;
+       }
+    }
+    //libérer la mémoire
+    mysqli_free_result($result);
+    //fermer la connection
+    mysqli_close($mysqli);
+  
+ 
+    //var_dump($data[0]);
+    
 
-        if (mysqli_select_db($mysqli, DATABASE))
-        {
-            // Nettoyage des donnÃ©es externes
-            $query = mysqli_real_escape_string($mysqli, $query);
-            //prÃ©parer une requÃ¨te
-            $result = mysqli_query($mysqli, $query);
-
-            if($result){
-                //extraire les rÃ©sultats
-                while (($line = mysqli_fetch_assoc($result)) != null)
-                {
-                    $data[] = $line;
-                }
-                //libÃ©rer la mÃ©moire
-                mysqli_free_result($result);
-                //fermer la connection
-                mysqli_close($mysqli);
-            } else
-            {
-                $message = $mysqli->error;
-            }
-        } else
-        {
-            $message = $mysqli->error;
-        }
-    } else
-    {
-        $message = "Erreur de connexion, verifier votre fichier config";
+    }
+    catch (Throwable $e) {
+        echo "Captured Throwable for connection : " . $e->getMessage() . PHP_EOL;
     }
 
     $response = [
         'data' => $data,
         'message' => $message,
     ];
-
     return $response;
+
+
 
 }
 

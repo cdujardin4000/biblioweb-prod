@@ -1,7 +1,8 @@
 <?php
+
 session_start(); // on demarre une session
 if (!isset($_SESSION['status'])){
-    $_SESSION['status'] = "unknown";
+    	$_SESSION['status'] = "unknown";
 }
 
 // Verification du chemin pour injecter les scripts
@@ -18,25 +19,26 @@ if(isset($_GET['action']) && (($_GET['action'] == "login" || $_GET['action'] == 
 }
 
 // Verification si l'utilisateur est connecté pour le message de bienvenue ou afficher son username
-$connected = false;
+//$connected = false;
 $messageWelcome = "Bonjour cher inconu!!!";
 if (isset($_SESSION['username'])){
     $connected = true;
     $messageWelcome = "Bonjour " . $_SESSION['username'] . ", vous etes connecté en tant que " . strtoupper($_SESSION['status']) .".";
 }
-
 ?>
+
 <!doctype html>
 <html lang="fr">
 <head>
     <title>Biblioweb</title>
     <!-- Required meta tags -->
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/ico" href="img/favicon.ico">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href=<?=$prefUrl."css/bootstrap.min.css"?>>
+    <link rel="stylesheet" href="<?=$prefUrl?>css/bootstrap.min.css">
     <!-- CSS -->
-    <link rel="stylesheet" href=<?=$prefUrl."css/screen.css"?>>
+    <link rel="stylesheet" href="<?=$prefUrl?>css/screen.css">
 </head>
 <body>
 
@@ -44,19 +46,19 @@ if (isset($_SESSION['username'])){
     <div class="px-3 py-2 bg-dark text-white border-bottom">
         <div class="container">
             <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-                <a class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none" href=<?=$prefUrl."index.php"?>>
-                    <img alt="logo du header" title="LOGO" class="logo-header" src=<?=$prefUrl."img/logo-Biblioweb.jpeg"?>>
+                <a class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none" href="<?=$prefUrl?>index.php">
+                    <img alt="logo du header" title="LOGO" class="logo-header" src="<?=$prefUrl?>img/logo-biblioweb.jpeg">
                 </a>
 
                 <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
                     <li>
-                        <a  class="nav-link text-white" href=<?=$prefUrl."index.php"?>>Home</a>
+                        <a  class="nav-link text-white" href="<?=$prefUrl?>index.php">Home</a>
                     </li>
                     <li>
-                        <a  class="nav-link text-white" href=<?=$prefUrl."admin/membre.php?path=admin"?>>Membre</a>
+                        <a  class="nav-link text-white" href="<?=$prefUrl?>admin/membre.php?path=admin">Membre</a>
                     </li>
                     <li>
-                        <a  class="nav-link text-white" href=<?=$prefUrl."admin/admin.php?path=admin"?>>Admin</a>
+                        <a  class="nav-link text-white" href="<?=$prefUrl?>admin/admin.php?path=admin">Admin</a>
                     </li>
                 </ul>
             </div>
@@ -72,10 +74,10 @@ if (isset($_SESSION['username'])){
             <div class="text-end">
                 <p class = "welcome"><?= $messageWelcome?></p>
                 <?php if ($connected) { ?>
-                    <a  class="btn btn-outline-light" href=<?=$prefUrl."admin/log.php?action=logout"?>>Logout</a>
+                    <a  class="btn btn-outline-light" href="<?=$prefUrl?>admin/log.php?action=logout">Logout</a>
                 <?php } else { ?>
-                    <a class="btn btn-outline-light" href=<?=$prefUrl."admin/log.php?action=login&path=admin"?>>Login</a>
-                    <a class="btn btn-outline-light" href=<?=$prefUrl."admin/log.php?action=signUp&path=admin"?>>Sign-up</a>
+                    <a class="btn btn-outline-light" href="<?=$prefUrl?>admin/log.php?action=login&path=admin">Login</a>
+                    <a class="btn btn-outline-light" href="<?=$prefUrl?>admin/log.php?action=signUp&path=admin">Sign-up</a>
                 <?php } ?>
             </div>
         </div>

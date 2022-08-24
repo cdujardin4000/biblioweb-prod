@@ -29,7 +29,7 @@ if (isset($_GET['tag'])){
 ?>
 
 <div class="container-tags">
-    <?php foreach($tags as$tag){
+    <?php foreach($tags as $tag){
         if ($tag['total'] < 4){ ?>
         <small><a href="<?= $_SERVER['PHP_SELF'] ?>?tag=<?= $tag['tag'] ?>"><?= $tag['tag'] ?></a></small>
         <?php } else if ($tag['total'] >= 8) { ?>

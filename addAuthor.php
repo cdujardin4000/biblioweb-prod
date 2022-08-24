@@ -1,5 +1,5 @@
 <?php
-include 'includes/header.php';
+
 include 'dbaccess.php';
 include 'functions.php';
 
@@ -32,7 +32,7 @@ $authors = $getAuthors['data'];
 //récupère les params
 $author = $authors[0];
 
-
+include 'includes/header.php';
 ?>
 <div class="container">
     <?php if (isset($_GET['error'])) { ?>

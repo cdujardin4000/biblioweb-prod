@@ -7,7 +7,7 @@ $query = "SELECT ref, title, lastname, firstname, author_id FROM books JOIN auth
 $getRandomBook = dbAccess($query);
 $randomBook = $getRandomBook['data'][0];
 $message = $getRandomBook['message'];
-var_dump($randomBook);
+
 
 /**
  * @param $cover_url

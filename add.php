@@ -1,5 +1,5 @@
 <?php
-include 'includes/header.php';
+
 include 'dbaccess.php';
 include 'functions.php';
 
@@ -38,7 +38,7 @@ $authors = $getAuthors['data'];
 //recupére id
 $authorsRealIds = getAuthorIds($authors);
 //var_dump($authorsRealIds);die;
-
+include 'includes/header.php';
 ?>
 <div class="container">
     <?php if (isset($_GET['error'])) { ?>

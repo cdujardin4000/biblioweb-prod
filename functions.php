@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * @param $authors
  * @return array
@@ -69,79 +72,7 @@ function filterBooks($authors)
     return $filtered;
 }
 
-/**
- * @param $username
- * @param $password
- * @return array|false|string[]|void
- */
-function pwVerif($username, $password)
-{
-    // Connexion au serveur MySQL et sélection de la base de données
-    if ($mysqli = mysqli_connect(HOSTNAME, USERNAME, PASSWORD, DATABASE)) {
 
-        // Nettoyage des données externes
-        $username = mysqli_real_escape_string($mysqli, $username);
-
-        // Exécution de la requête SQL
-        $result = mysqli_query($mysqli, "SELECT * FROM users WHERE login='$username'");
-        if ($result) {
-            // Extraction des données
-            $user = mysqli_fetch_assoc($result);
-            mysqli_free_result($result); // Libérer la mémoire
-
-            if ($user && password_verify($password, $user['password'])) {
-
-                mysqli_close($mysqli); // Fermer la connexion au serveur
-                return $user;
-            }
-        }
-        mysqli_close($mysqli); // Fermer la connexion au serveur
-
-        return false;
-    }
-}
-
-/**
- * @param $username
- * @param $password
- * @param $mail
- */
-function addUser($username, $password, $mail)
-{
-// Create connection
-    $mysqli = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
-// Check connection
-    if ($mysqli->connect_error) {
-        die("Connection failed: " . $mysqli->connect_error);
-    }
-    // Nettoyage des données externes
-    $username = mysqli_real_escape_string($mysqli, $username);
-    $mail = mysqli_real_escape_string($mysqli, $mail);
-    $password = password_hash($password, PASSWORD_BCRYPT);
-
-
-    $query = "INSERT INTO users (login, password, email, statut) VALUES ('$username', '$password', '$mail', 'membre')";
-
-    if ($mysqli->query($query) === TRUE) {
-
-        $mysqli->close();
-        $_SESSION['username'] = $username;
-        $_SESSION['status'] = 'novice';
-        header("location: ../index.php?succes=userCreated");
-
-    } else {
-
-        header("location: signUp.php?path=admin&error=db");
-    }
-}
-
-/**
- * @param $title
- * @param $author_id
- * @param $description
- * @param $cover_url
- * @return bool|void
- */
 /**
  * @param $id
  * @param $loandBook
@@ -166,6 +97,15 @@ function insertRatings($id, $loandBook)
         return $mysqli->error;
     }
 }
+
+/**
+ * @param $title
+ * @param $author_id
+ * @param $description
+ * @param $cover_url
+ * @return bool|void
+ */
+
 function addBook($title, $author_id, $description, $cover_url)
 {
 

@@ -7,6 +7,7 @@ $(function(){
     $('#mail').css({'color': 'white'});
     $('.change-logo').css({'margin-top': '1rem'});
     $('.list-text').css({'padding': '2rem 0'});
+    
     updateSelect = (selectedValue) =>
     {
         this.value = selectedValue;
